@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Reservas{% endblock %}
+
+{% block content %}
+<main class="app-shell">
+  <section class="topbar">
+    <div>
+      <span class="eyebrow">{{ 'Admin' if usuario_tipo == 'admin' else 'Cliente' }}</span>
+      <h1>{{ 'Lista de pedidos da quadra' if usuario_tipo == 'admin' else 'Seus pedidos' }}</h1>
+    </div>
+    <div class="topbar-actions">
+      <a class="ghost-btn" href="{{ url_for('dashboard') }}">Voltar</a>
+    </div>
+  </section>
+
+  <section class="content-card">
+    {% if usuario_tipo == 'admin' %}
+      <form class="filter-row" method="GET">
+        <div>
+          <label>Dia</label>
+          <input type="date" name="data" value="{{ filtro_data }}">
+        </div>
+        <div>
+          <label>Status</label>
+          <select name="status">
+            <option value="pendente" {% if filtro_status == 'pendente' %}selected{% endif %}>Pendente</option>
+            <option value="confirmada" {% if filtro_status == 'confirmada' %}selected{% endif %}>Concluido</option>
+            <option value="recusada" {% if filtro_status == 'recusada' %}selected{% endif %}>Recusado</option>
+            <option value="todos" {% if filtro_status == 'todos' %}selected{% endif %}>Todos</option>
+          </select>
+        </div>
+        <button class="secondary-btn inline-btn" type="submit">Filtrar</button>
+        <span class="muted-tag">{{ filtro_data_formatada }}</span>
+      </form>
+    {% endif %}
+
+    {% if reservas %}
+      <div class="reservation-list">
+        {% for r in reservas %}
+          <article class="reservation-card full">
+            <div class="reservation-main">
+              <div>
+                <span class="pill {{ r.status }}">{{ r.status_label }}</span>
+                <h3>{{ r.data_formatada }}</h3>
+                <p>{{ r.nome }} • {{ r.telefone }}</p>
+                <p>{{ r.horario }}</p>
+              </div>
+              {% if usuario_tipo == 'admin' and r.status == 'pendente' %}
+                <div class="admin-actions">
+                  <a class="secondary-btn inline-btn" target="_blank" href="{{ r.whatsapp_link }}">WhatsApp</a>
+                  <form action="{{ url_for('atualizar_status', reserva_id=r.id) }}" method="POST">
+                    <input type="hidden" name="status" value="confirmada">
+                    <button class="primary-btn inline-btn" type="submit">Concluir</button>
+                  </form>
+                  <form action="{{ url_for('atualizar_status', reserva_id=r.id) }}" method="POST">
+                    <input type="hidden" name="status" value="recusada">
+                    <button class="danger-btn inline-btn" type="submit">Recusar</button>
+                  </form>
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="reservation-actions">
+              <a class="secondary-btn inline-btn" target="_blank" href="{{ r.whatsapp_link }}">WhatsApp</a>
+              <form action="{{ url_for('cancelar', reserva_id=r.id) }}" method="POST">
+                <button class="ghost-btn inline-btn" type="submit">Cancelar</button>
+              </form>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <h3>Nenhum pedido encontrado</h3>
+        <p>Quando houver reserva, ela aparece aqui.</p>
+      </div>
+    {% endif %}
+  </section>
+</main>
+{% endblock %}

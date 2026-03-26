@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Acesso{% endblock %}
+
+{% block content %}
+{% set active = active_tab or 'cliente' %}
+<main class="site-shell access-layout simple">
+  <section class="content-card intro-card">
+    <span class="eyebrow">Quadra</span>
+    <h1>{{ quadra.nome }}</h1>
+    <p>{{ quadra.descricao }}</p>
+    <div class="mini-card">
+      <div>
+        <strong>{{ quadra.livres_hoje }} horarios livres hoje</strong>
+        <span>Admin responsavel: {{ quadra.admin_nome }}</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="auth-panel">
+    <div class="tab-row">
+      <button class="tab-btn {% if active == 'cliente' %}active{% endif %}" data-tab-target="cliente">Cliente</button>
+      <button class="tab-btn {% if active == 'admin' %}active{% endif %}" data-tab-target="admin">Admin</button>
+      <button class="tab-btn {% if active == 'cadastro' %}active{% endif %}" data-tab-target="cadastro">Cadastro</button>
+    </div>
+
+    <div class="form-stack">
+      <form class="auth-form {% if active == 'cliente' %}active{% endif %}" data-tab-panel="cliente" action="{{ url_for('login') }}" method="POST">
+        <input type="hidden" name="tipo" value="cliente">
+        <input type="hidden" name="next_url" value="{{ next_url }}">
+        <h2>Entrar como cliente</h2>
+        <p>Entre e envie seu pedido de reserva.</p>
+        {% if erro and active == 'cliente' %}<div class="alert erro">{{ erro }}</div>{% endif %}
+        {% if sucesso_cadastro %}<div class="alert sucesso">{{ sucesso_cadastro }}</div>{% endif %}
+        <label>Usuario</label>
+        <input type="text" name="usuario" required>
+        <label>Senha</label>
+        <input type="password" name="senha" required>
+        <button type="submit">Entrar</button>
+      </form>
+
+      <form class="auth-form {% if active == 'admin' %}active{% endif %}" data-tab-panel="admin" action="{{ url_for('login') }}" method="POST">
+        <input type="hidden" name="tipo" value="admin">
+        <input type="hidden" name="next_url" value="{{ next_url }}">
+        <h2>Entrar como admin</h2>
+        <p>O admin ve todos os pedidos desta quadra.</p>
+        {% if erro and active == 'admin' %}<div class="alert erro">{{ erro }}</div>{% endif %}
+        <label>Usuario</label>
+        <input type="text" name="usuario" required>
+        <label>Senha</label>
+        <input type="password" name="senha" required>
+        <button type="submit">Abrir painel</button>
+      </form>
+
+      <form class="auth-form {% if active == 'cadastro' %}active{% endif %}" data-tab-panel="cadastro" action="{{ url_for('cadastro') }}" method="POST">
+        <h2>Criar conta</h2>
+        <p>Cadastro rapido para pedir reserva.</p>
+        {% if erro_cadastro %}<div class="alert erro">{{ erro_cadastro }}</div>{% endif %}
+        <label>Nome</label>
+        <input type="text" name="nome" required>
+        <label>Telefone</label>
+        <input type="text" name="telefone" required>
+        <label>Usuario</label>
+        <input type="text" name="usuario" required>
+        <label>Senha</label>
+        <input type="password" name="senha" required>
+        <button type="submit">Criar conta</button>
+      </form>
+    </div>
+  </section>
+</main>
+
+<script>
+  const tabs = document.querySelectorAll("[data-tab-target]");
+  const panels = document.querySelectorAll("[data-tab-panel]");
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const target = tab.dataset.tabTarget;
+      tabs.forEach((item) => item.classList.toggle("active", item === tab));
+      panels.forEach((panel) => panel.classList.toggle("active", panel.dataset.tabPanel === target));
+    });
+  });
+</script>
+{% endblock %}

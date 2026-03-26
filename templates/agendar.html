@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Novo Pedido{% endblock %}
+
+{% block content %}
+<main class="app-shell">
+  <section class="topbar">
+    <div>
+      <span class="eyebrow">Novo pedido</span>
+      <h1>{{ quadra.nome }}</h1>
+    </div>
+    <div class="topbar-actions">
+      <a class="ghost-btn" href="{{ url_for('painel_cliente') }}">Voltar</a>
+    </div>
+  </section>
+
+  <section class="booking-layout single">
+    <article class="content-card">
+      {% if erro %}<div class="alert erro">{{ erro }}</div>{% endif %}
+      <form method="POST">
+        <div class="client-badge">
+          <strong>{{ nome }}</strong>
+          <span>{{ telefone }}</span>
+          <small>Admin responsavel: {{ quadra.admin_nome }}</small>
+        </div>
+
+        <label>Data</label>
+        <input type="date" name="data" id="date-input" value="{{ data }}" min="{{ calendario[0].value }}" required>
+
+        <div class="calendar-strip">
+          {% for dia in calendario %}
+            <button type="button" class="day-chip {% if dia.value == data %}active{% endif %}" data-date="{{ dia.value }}">
+              <span>{{ dia.weekday }}</span>
+              <strong>{{ dia.label }}</strong>
+            </button>
+          {% endfor %}
+        </div>
+
+        <div class="section-head slots-head">
+          <div>
+            <span class="eyebrow">Horarios</span>
+            <h2 id="slots-title">{{ data_formatada }}</h2>
+          </div>
+          <span class="slots-legend">Voce pode marcar mais de um horario</span>
+        </div>
+
+        <input type="hidden" name="horarios" id="selected-slots">
+        <div class="slots-grid" id="slots-grid">
+          {% for item in horarios %}
+            <button type="button" class="slot-btn {% if not item.disponivel %}occupied{% endif %}" data-slot="{{ item.horario }}" {% if not item.disponivel %}disabled{% endif %}>{{ item.horario }}</button>
+          {% endfor %}
+        </div>
+
+        <div class="submit-row">
+          <span id="selected-slot-label">Nenhum horario selecionado</span>
+          <button class="primary-btn inline-btn" type="submit">Enviar pedido</button>
+        </div>
+      </form>
+    </article>
+  </section>
+</main>
+
+<script>
+  const dateInput = document.getElementById("date-input");
+  const slotsGrid = document.getElementById("slots-grid");
+  const slotsTitle = document.getElementById("slots-title");
+  const selectedSlots = document.getElementById("selected-slots");
+  const selectedSlotLabel = document.getElementById("selected-slot-label");
+  const dayButtons = document.querySelectorAll(".day-chip");
+  let activeSlots = [];
+
+  function bindSlotButtons() {
+    const buttons = slotsGrid.querySelectorAll(".slot-btn");
+    buttons.forEach((button) => {
+      button.addEventListener("click", () => {
+        if (button.disabled) return;
+        const slot = button.dataset.slot;
+        if (activeSlots.includes(slot)) {
+          activeSlots = activeSlots.filter((item) => item !== slot);
+          button.classList.remove("selected");
+        } else {
+          activeSlots.push(slot);
+          button.classList.add("selected");
+        }
+        selectedSlots.value = activeSlots.join(",");
+        selectedSlotLabel.textContent = activeSlots.length
+          ? "Horarios escolhidos: " + activeSlots.join(", ")
+          : "Nenhum horario selecionado";
+      });
+    });
+  }
+
+  async function loadAvailability() {
+    const response = await fetch(`/api/disponibilidade?data=${dateInput.value}`);
+    const data = await response.json();
+    dayButtons.forEach((button) => {
+      button.classList.toggle("active", button.dataset.date === dateInput.value);
+    });
+    activeSlots = [];
+    selectedSlots.value = "";
+    selectedSlotLabel.textContent = "Nenhum horario selecionado";
+    slotsTitle.textContent = data.data_formatada;
+    slotsGrid.innerHTML = data.horarios.map((item) => `
+      <button type="button" class="slot-btn ${item.disponivel ? "" : "occupied"}" data-slot="${item.horario}" ${item.disponivel ? "" : "disabled"}>${item.horario}</button>
+    `).join("");
+    bindSlotButtons();
+  }
+
+  dateInput.addEventListener("change", loadAvailability);
+  dayButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      dateInput.value = button.dataset.date;
+      loadAvailability();
+    });
+  });
+  bindSlotButtons();
+</script>
+{% endblock %}

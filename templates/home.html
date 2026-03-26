@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Reserva da Quadra{% endblock %}
+
+{% block content %}
+<main class="site-shell">
+  <section class="landing-hero">
+    <span class="eyebrow">Reserva simples</span>
+    <h1>{{ quadra.nome }}</h1>
+    <p>{{ quadra.descricao }}</p>
+    <div class="hero-actions">
+      <span class="pill">{{ quadra.livres_hoje }} horarios livres hoje</span>
+      <span class="muted-tag">Admin: {{ quadra.admin_nome }}</span>
+    </div>
+    <div class="hero-actions">
+      <a class="primary-btn inline-btn" href="{{ url_for('acesso') }}">Entrar para reservar</a>
+    </div>
+  </section>
+</main>
+{% endblock %}
