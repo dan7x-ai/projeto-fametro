@@ -1,4 +1,5 @@
 import sqlite3
+import os
 from datetime import date, datetime, timedelta
 from functools import wraps
 from urllib.parse import urlencode
@@ -646,7 +647,6 @@ def cancelar(reserva_id):
     conn.close()
     return redirect(url_for("reservas"))
 
-
 if __name__ == "__main__":
     init_db()
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
